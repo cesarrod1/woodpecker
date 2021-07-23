@@ -64,5 +64,4 @@ php artisan migrate
 * [Lumen Framework Docs](https://lumen.laravel.com/docs)
 * [Authentication with Lumen-Passport](https://github.com/dusterio/lumen-passport)
 * [Lumen REST API with Passport and JWT](https://www.youtube.com/watch?v=g_22EUfibJ8)
-* [Setting up an Laravel application with docker-compose](https://www.digitalocean.com/community/tutorials/how-to-set-up-laravel-nginx-and-mysql-with-docker-compose-pt)
 
