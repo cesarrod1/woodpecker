@@ -1,41 +1,39 @@
-FROM ubuntu:18.04
+FROM php:8.0-fpm
 
-RUN apt-get update
-RUN apt-get install -y wget curl nano htop git unzip bzip2 software-properties-common locales
+COPY composer.lock composer.json /var/www/app/
 
-WORKDIR /var/www/html
+WORKDIR /var/www/app/
 
-RUN LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php
-RUN apt update
-RUN apt-get install -y \
-    php7.4-fpm \
-    php7.4-common \
-    php7.4-curl \
-    php7.4-mysql \
-    php7.4-mbstring \
-    php7.4-json \
-    php7.4-xml \
-    php7.4-bcmath
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    locales \
+    zip \
+    jpegoptim optipng pngquant gifsicle \
+    vim \
+    libzip-dev \
+    unzip \
+    git \
+    libonig-dev \
+    curl
 
-ADD src/resources/www.conf /etc/php/7.4/fpm/pool.d/www.conf
-RUN mkdir -p /var/run/php
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ABF5BD827BD9BF62
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C
-RUN echo "deb http://nginx.org/packages/ubuntu/ trusty nginx" >> /etc/apt/sources.list
-RUN echo "deb-src http://nginx.org/packages/ubuntu/ trusty nginx" >> /etc/apt/sources.list
-RUN apt-get update
-
-RUN apt-get install -y nginx
-
-ADD src/resources/default /etc/nginx/sites-enabled/
-ADD src/resources/nginx.conf /etc/nginx/
-
-RUN chown -R www-data:www-data .
+RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+RUN docker-php-ext-install gd
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-EXPOSE 80
+COPY . /var/www/app
 
-ENTRYPOINT ["/usr/bin/supervisord"]
+RUN chown -R www-data:www-data \
+        /var/www/app/storage/ \
+        /var/www/app/bootstrap/
 
+RUN chmod -R 777 /var/www/app/storage/
+
+EXPOSE 9000
+CMD ["php-fpm"]
